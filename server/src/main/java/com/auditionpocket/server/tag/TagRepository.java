@@ -10,5 +10,7 @@ public interface TagRepository extends MongoRepository<Tag, String> {
 
     List<Tag> findByDeletedAtIsNullOrderByDisplayOrderAsc();
 
+    List<Tag> findByIdInAndActiveTrueAndDeletedAtIsNull(List<String> ids);
+
     boolean existsByNameAndDeletedAtIsNull(String name);
 }
