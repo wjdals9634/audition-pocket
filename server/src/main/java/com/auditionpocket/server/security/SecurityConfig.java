@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/link-email").authenticated()
 
-                        .requestMatchers("/api/admin/**").denyAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         .requestMatchers("/api/clips").authenticated()
                         .requestMatchers("/api/clips/**").authenticated()

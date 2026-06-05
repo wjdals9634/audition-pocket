@@ -1,0 +1,9 @@
+# Environment variables
+.env
+.env.*
+
+# Test cookie files
+cookies.txt
+*-cookies.txt
+server/cookies.txt
+server/*-cookies.txt
