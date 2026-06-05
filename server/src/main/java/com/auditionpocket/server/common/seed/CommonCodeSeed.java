@@ -21,6 +21,7 @@ public class CommonCodeSeed implements CommandLineRunner {
         seedClipStatuses();
         seedClipSources();
         seedUserStatuses();
+        seedUserAccountTypes();
     }
 
     private void seedClipStatuses() {
@@ -47,6 +48,11 @@ public class CommonCodeSeed implements CommandLineRunner {
         createIfNotExists("USER_STATUS", "ACTIVE", "활성", "정상적으로 이용 가능한 사용자 상태", 1);
         createIfNotExists("USER_STATUS", "SUSPENDED", "정지", "관리자에 의해 이용이 제한된 사용자 상태", 2);
         createIfNotExists("USER_STATUS", "DELETED", "삭제", "탈퇴 또는 삭제 처리된 사용자 상태", 3);
+    }
+
+    private void seedUserAccountTypes() {
+        createIfNotExists("USER_ACCOUNT_TYPE", "GUEST", "게스트", "이메일 연동 전 게스트 사용자", 1);
+        createIfNotExists("USER_ACCOUNT_TYPE", "REGISTERED", "회원", "이메일 연동을 완료한 사용자", 2);
     }
 
     private void createIfNotExists(

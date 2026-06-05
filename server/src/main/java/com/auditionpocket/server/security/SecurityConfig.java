@@ -48,9 +48,11 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/auth/signup").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/guest").permitAll()
 
                         .requestMatchers("/api/auth/me").authenticated()
                         .requestMatchers("/api/auth/logout").authenticated()
+                        .requestMatchers("/api/auth/link-email").authenticated()
 
                         .requestMatchers("/api/admin/**").denyAll()
 

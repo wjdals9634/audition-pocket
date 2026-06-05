@@ -1,6 +1,7 @@
 package com.auditionpocket.server.auth;
 
 import com.auditionpocket.server.auth.dto.AuthUserResponse;
+import com.auditionpocket.server.auth.dto.LinkEmailRequest;
 import com.auditionpocket.server.auth.dto.LoginRequest;
 import com.auditionpocket.server.auth.dto.SignupRequest;
 import com.auditionpocket.server.user.User;
@@ -24,11 +25,11 @@ public class AuthController {
             @Valid @RequestBody SignupRequest request,
             HttpSession session
     ) {
-        AuthUserResponse response = authService.signup(request);
+        User user = authService.signup(request);
 
-        session.setAttribute(USER_ID_SESSION_KEY, response.id());
+        session.setAttribute(USER_ID_SESSION_KEY, user.getId());
 
-        return response;
+        return AuthUserResponse.from(user);
     }
 
     @PostMapping("/login")
@@ -37,6 +38,42 @@ public class AuthController {
             HttpSession session
     ) {
         User user = authService.login(request);
+
+        session.setAttribute(USER_ID_SESSION_KEY, user.getId());
+
+        return AuthUserResponse.from(user);
+    }
+
+    @PostMapping("/guest")
+    public AuthUserResponse guest(
+            HttpSession session
+    ) {
+        Object existingUserId = session.getAttribute(USER_ID_SESSION_KEY);
+
+        if (existingUserId != null) {
+            User user = authService.getUserById(existingUserId.toString());
+
+            return AuthUserResponse.from(user);
+        }
+
+        User user = authService.createGuest();
+
+        session.setAttribute(USER_ID_SESSION_KEY, user.getId());
+
+        return AuthUserResponse.from(user);
+    }
+
+    @PostMapping("/link-email")
+    public AuthUserResponse linkEmail(
+            @Valid @RequestBody LinkEmailRequest request,
+            HttpSession session
+    ) {
+        String userId = getLoginUserId(session);
+
+        User user = authService.linkEmail(
+                userId,
+                request
+        );
 
         session.setAttribute(USER_ID_SESSION_KEY, user.getId());
 
@@ -58,14 +95,20 @@ public class AuthController {
 
     @GetMapping("/me")
     public AuthUserResponse me(HttpSession session) {
+        String userId = getLoginUserId(session);
+
+        User user = authService.getUserById(userId);
+
+        return AuthUserResponse.from(user);
+    }
+
+    private String getLoginUserId(HttpSession session) {
         Object userId = session.getAttribute(USER_ID_SESSION_KEY);
 
         if (userId == null) {
             throw new IllegalArgumentException("로그인이 필요합니다.");
         }
 
-        User user = authService.getUserById(userId.toString());
-
-        return AuthUserResponse.from(user);
+        return userId.toString();
     }
 }

@@ -22,6 +22,7 @@ public class User {
     private String name;
 
     private String statusCode;
+    private String accountType;
     private String role;
 
     private Instant createdAt;
