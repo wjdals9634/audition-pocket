@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createGuest, getMe, linkEmail } from '../api/authApi'
+import BackButton from '../components/BackButton'
+import Card from '../components/Card'
+import ErrorMessage from '../components/ErrorMessage'
+import LoadingScreen from '../components/LoadingScreen'
+import PageShell from '../components/PageShell'
 
 function LinkEmailPage() {
   const navigate = useNavigate()
@@ -91,118 +96,102 @@ function LinkEmailPage() {
   }
 
   if (loading) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">불러오는 중...</p>
-      </main>
-    )
+    return <LoadingScreen />
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-xl px-4 py-8">
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => navigate('/clips')}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-900"
-          >
-            ← 목록으로 돌아가기
-          </button>
-        </div>
+    <PageShell maxWidth="max-w-xl">
+      <div className="mb-6">
+        <BackButton onClick={() => navigate('/clips')} />
+      </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="mb-2 text-sm font-medium text-violet-600">
-            Audition Pocket
-          </p>
+      <Card>
+        <p className="mb-2 text-sm font-medium text-violet-600">
+          Audition Pocket
+        </p>
 
-          <h1 className="text-2xl font-bold text-slate-900">
-            이메일 연동하기
-          </h1>
+        <h1 className="text-2xl font-bold text-slate-900">
+          이메일 연동하기
+        </h1>
 
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            지금까지 게스트로 저장한 오디션 공고를 이메일 계정에 연결합니다.
-            연동 후에는 같은 이메일로 로그인해서 다시 이어서 사용할 수 있어요.
-          </p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          지금까지 게스트로 저장한 오디션 공고를 이메일 계정에 연결합니다.
+          연동 후에는 같은 이메일로 로그인해서 다시 이어서 사용할 수 있어요.
+        </p>
 
-          {currentUser && (
-            <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-              현재 상태:{' '}
-              <span className="font-semibold text-slate-900">
-                {currentUser.accountType}
-              </span>
-            </div>
-          )}
+        {currentUser && (
+          <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+            현재 상태:{' '}
+            <span className="font-semibold text-slate-900">
+              {currentUser.accountType}
+            </span>
+          </div>
+        )}
 
-          {errorMessage && (
-            <div className="mt-5 rounded-2xl bg-red-50 p-4 text-sm text-red-600">
-              {errorMessage}
-            </div>
-          )}
+        <ErrorMessage message={errorMessage} className="mt-5" />
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                이메일
-              </label>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              이메일
+            </label>
 
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="example@email.com"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="example@email.com"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+            />
+          </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                비밀번호
-              </label>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              비밀번호
+            </label>
 
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="8자 이상 입력"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="8자 이상 입력"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+            />
+          </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                이름
-              </label>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              이름
+            </label>
 
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="이름 또는 닉네임"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="이름 또는 닉네임"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+            />
+          </div>
 
-            <div className="flex gap-3 pt-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {submitting ? '연동 중...' : '이메일 연동하기'}
-              </button>
+          <div className="flex gap-3 pt-3">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {submitting ? '연동 중...' : '이메일 연동하기'}
+            </button>
 
-              <button
-                type="button"
-                onClick={() => navigate('/clips')}
-                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
-              >
-                나중에 하기
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-    </main>
+            <button
+              type="button"
+              onClick={() => navigate('/clips')}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+            >
+              나중에 하기
+            </button>
+          </div>
+        </form>
+      </Card>
+    </PageShell>
   )
 }
 

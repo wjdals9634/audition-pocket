@@ -4,9 +4,16 @@ import { createGuest, getMe } from '../api/authApi'
 import { createClip } from '../api/clipApi'
 import { getCommonCodes } from '../api/commonCodeApi'
 import { getTags } from '../api/tagApi'
+import BackButton from '../components/BackButton'
+import Card from '../components/Card'
+import ErrorMessage from '../components/ErrorMessage'
+import LoadingScreen from '../components/LoadingScreen'
+import PageShell from '../components/PageShell'
 
 function ClipCreatePage() {
   const navigate = useNavigate()
+
+  const today = new Date().toISOString().slice(0, 10)
 
   const [currentUser, setCurrentUser] = useState(null)
   const [sourceCodes, setSourceCodes] = useState([])
@@ -55,6 +62,7 @@ function ClipCreatePage() {
         }
 
         const savedStatus = clipStatuses.find((item) => item.code === 'SAVED')
+
         if (savedStatus) {
           setStatusCode(savedStatus.code)
         } else if (clipStatuses.length > 0) {
@@ -137,187 +145,200 @@ function ClipCreatePage() {
   }
 
   if (loading) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">불러오는 중...</p>
-      </main>
-    )
+    return <LoadingScreen />
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <section className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => navigate('/clips')}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-900"
-          >
-            ← 목록으로 돌아가기
-          </button>
-        </div>
+    <PageShell maxWidth="max-w-3xl">
+      <div className="mb-6">
+        <BackButton onClick={() => navigate('/clips')} />
+      </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="mb-2 text-sm font-medium text-violet-600">
-            Audition Pocket
-          </p>
+      <Card>
+        <p className="mb-2 text-sm font-medium text-violet-600">
+          Audition Pocket
+        </p>
 
-          <h1 className="text-2xl font-bold text-slate-900">
-            새 오디션 공고 추가
-          </h1>
+        <h1 className="text-2xl font-bold text-slate-900">
+          새 오디션 공고 추가
+        </h1>
 
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            공고 링크, 마감일, 지원 상태를 저장해두면 한곳에서 관리할 수
-            있어요.
-          </p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          공고 링크, 마감일, 지원 상태를 저장해두면 놓치기 쉬운 오디션
+          일정을 한곳에서 관리할 수 있어요.
+        </p>
 
-          {currentUser?.accountType === 'GUEST' && (
-            <div className="mt-5 rounded-2xl bg-violet-50 p-4 text-sm leading-6 text-violet-700">
-              현재 게스트 상태입니다. 저장한 공고는 이 브라우저에서만 이어서
-              볼 수 있어요. 이메일을 연동하면 더 안전하게 보관할 수 있습니다.
-            </div>
-          )}
+        {currentUser?.accountType === 'GUEST' && (
+          <div className="mt-5 rounded-2xl bg-violet-50 p-4 text-sm leading-6 text-violet-700">
+            현재 게스트 상태입니다. 저장한 공고는 이 브라우저에서만 이어서
+            볼 수 있어요. 이메일을 연동하면 더 안전하게 보관할 수 있습니다.
+          </div>
+        )}
 
-          {errorMessage && (
-            <div className="mt-5 rounded-2xl bg-red-50 p-4 text-sm text-red-600">
-              {errorMessage}
-            </div>
-          )}
+        <ErrorMessage message={errorMessage} className="mt-5" />
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              공고 제목 <span className="text-red-500">*</span>
+            </label>
+
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="예: 뮤지컬 주연 오디션"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+            />
+
+            <p className="mt-2 text-xs text-slate-500">
+              나중에 목록에서 바로 알아볼 수 있게 작품명이나 역할명을 함께
+              적어두면 좋아요.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              공고 링크 <span className="text-red-500">*</span>
+            </label>
+
+            <input
+              type="text"
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              value={sourceUrl}
+              onChange={(event) => setSourceUrl(event.target.value)}
+              placeholder="https://..."
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+            />
+
+            <p className="mt-2 text-xs text-slate-500">
+              OTR, 필름메이커스, 인스타그램, 유튜브, 카카오톡에서 확인한
+              공고 링크를 붙여넣으세요.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                공고 제목
+                출처 <span className="text-red-500">*</span>
               </label>
+
+              <select
+                value={sourceCode}
+                onChange={(event) => setSourceCode(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500"
+              >
+                {sourceCodes.map((item) => (
+                  <option key={item.id} value={item.code}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                마감일 <span className="text-red-500">*</span>
+              </label>
+
               <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="예: 뮤지컬 주연 오디션"
+                type="date"
+                min={today}
+                value={deadlineDate}
+                onChange={(event) => setDeadlineDate(event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
               />
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                공고 링크
-              </label>
-              <input
-                value={sourceUrl}
-                onChange={(event) => setSourceUrl(event.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  출처
-                </label>
-                <select
-                  value={sourceCode}
-                  onChange={(event) => setSourceCode(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500"
-                >
-                  {sourceCodes.map((item) => (
-                    <option key={item.id} value={item.code}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  마감일
-                </label>
-                <input
-                  type="date"
-                  value={deadlineDate}
-                  onChange={(event) => setDeadlineDate(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  지원 상태
-                </label>
-                <select
-                  value={statusCode}
-                  onChange={(event) => setStatusCode(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500"
-                >
-                  {statusCodes.map((item) => (
-                    <option key={item.id} value={item.code}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-3 block text-sm font-semibold text-slate-700">
-                태그
+                지원 상태 <span className="text-red-500">*</span>
               </label>
 
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => {
-                  const selected = selectedTagIds.includes(tag.id)
-
-                  return (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => toggleTag(tag.id)}
-                      className={
-                        selected
-                          ? 'rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white'
-                          : 'rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600'
-                      }
-                    >
-                      {tag.name}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                메모
-              </label>
-              <textarea
-                value={memo}
-                onChange={(event) => setMemo(event.target.value)}
-                placeholder="준비물, 지정곡, 지원 조건 등을 적어두세요."
-                rows={5}
-                className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+              <select
+                value={statusCode}
+                onChange={(event) => setStatusCode(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500"
               >
-                {submitting ? '저장 중...' : '공고 저장하기'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/clips')}
-                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
-              >
-                취소
-              </button>
+                {statusCodes.map((item) => (
+                  <option key={item.id} value={item.code}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          </form>
-        </div>
-      </section>
-    </main>
+          </div>
+
+          <div>
+            <label className="mb-3 block text-sm font-semibold text-slate-700">
+              태그
+            </label>
+
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => {
+                const selected = selectedTagIds.includes(tag.id)
+
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={
+                      selected
+                        ? 'rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white'
+                        : 'rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600'
+                    }
+                  >
+                    {tag.name}
+                  </button>
+                )
+              })}
+            </div>
+
+            <p className="mt-2 text-xs text-slate-500">
+              공고 성격에 맞는 태그를 선택하면 나중에 분류하기 쉬워요.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              메모
+            </label>
+
+            <textarea
+              value={memo}
+              onChange={(event) => setMemo(event.target.value)}
+              placeholder="준비물, 지정곡, 지원 조건, 제출 서류 등을 적어두세요."
+              rows={5}
+              className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+            />
+
+            <p className="mt-2 text-xs text-slate-500">
+              예: 지정곡 확인 필요, 프로필 PDF 제출, 영상 링크 필요
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {submitting ? '저장 중...' : '공고 저장하기'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/clips')}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+            >
+              취소
+            </button>
+          </div>
+        </form>
+      </Card>
+    </PageShell>
   )
 }
 
