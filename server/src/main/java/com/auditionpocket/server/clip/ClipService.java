@@ -3,6 +3,8 @@ package com.auditionpocket.server.clip;
 import com.auditionpocket.server.clip.dto.AdminClipCreateRequest;
 import com.auditionpocket.server.clip.dto.ClipCreateRequest;
 import com.auditionpocket.server.clip.dto.ClipResponse;
+import com.auditionpocket.server.clip.dto.ClipSearchCondition;
+import com.auditionpocket.server.clip.dto.ClipSortType;
 import com.auditionpocket.server.clip.dto.ClipUpdateRequest;
 import com.auditionpocket.server.common.code.CommonCodeRepository;
 import com.auditionpocket.server.tag.TagRepository;
@@ -23,12 +25,21 @@ public class ClipService {
     private final CommonCodeRepository commonCodeRepository;
     private final TagRepository tagRepository;
 
-    public List<ClipResponse> getClipsByUserId(String userId) {
+    public List<ClipResponse> getClipsByUserId(
+            String userId,
+            ClipSearchCondition condition
+    ) {
         validateUserExists(userId);
 
-        return clipRepository
-                .findByUserIdAndHiddenFalseAndDeletedAtIsNullOrderByCreatedAtDesc(userId)
-                .stream()
+        List<Clip> clips = getSortedClips(
+                userId,
+                condition.resolvedSort()
+        );
+
+        return clips.stream()
+                .filter(clip -> matchesKeyword(clip, condition.keyword()))
+                .filter(clip -> matchesStatusCode(clip, condition.statusCode()))
+                .filter(clip -> matchesSourceCode(clip, condition.sourceCode()))
                 .map(ClipResponse::from)
                 .toList();
     }
@@ -73,12 +84,17 @@ public class ClipService {
         return ClipResponse.from(saved);
     }
 
-    public ClipResponse updateClipByUserId(String userId, String clipId, ClipUpdateRequest request) {
+    public ClipResponse updateClipByUserId(
+            String userId,
+            String clipId,
+            ClipUpdateRequest request
+    ) {
         validateUserExists(userId);
 
         Clip clip = clipRepository.findById(clipId)
                 .filter(item -> item.getDeletedAt() == null)
                 .filter(item -> item.getUserId().equals(userId))
+                .filter(item -> Boolean.FALSE.equals(item.getHidden()))
                 .orElseThrow(() -> new IllegalArgumentException("공고 스크랩을 찾을 수 없습니다."));
 
         updateFields(clip, request, false);
@@ -94,6 +110,7 @@ public class ClipService {
         Clip clip = clipRepository.findById(clipId)
                 .filter(item -> item.getDeletedAt() == null)
                 .filter(item -> item.getUserId().equals(userId))
+                .filter(item -> Boolean.FALSE.equals(item.getHidden()))
                 .orElseThrow(() -> new IllegalArgumentException("공고 스크랩을 찾을 수 없습니다."));
 
         softDelete(clip);
@@ -189,7 +206,11 @@ public class ClipService {
         return ClipResponse.from(saved);
     }
 
-    private void updateFields(Clip clip, ClipUpdateRequest request, boolean allowHiddenUpdate) {
+    private void updateFields(
+            Clip clip,
+            ClipUpdateRequest request,
+            boolean allowHiddenUpdate
+    ) {
         if (request.title() != null) {
             clip.setTitle(request.title());
         }
@@ -295,5 +316,56 @@ public class ClipService {
                 .filter(tagId -> tagId != null && !tagId.isBlank())
                 .distinct()
                 .toList();
+    }
+
+    private List<Clip> getSortedClips(
+            String userId,
+            ClipSortType sort
+    ) {
+        if (sort == ClipSortType.DEADLINE_ASC) {
+            return clipRepository
+                    .findByUserIdAndHiddenFalseAndDeletedAtIsNullOrderByDeadlineDateAsc(userId);
+        }
+
+        return clipRepository
+                .findByUserIdAndHiddenFalseAndDeletedAtIsNullOrderByCreatedAtDesc(userId);
+    }
+
+    private boolean matchesKeyword(
+            Clip clip,
+            String keyword
+    ) {
+        if (keyword == null || keyword.isBlank()) {
+            return true;
+        }
+
+        String normalizedKeyword = keyword.trim().toLowerCase();
+
+        String title = clip.getTitle() == null ? "" : clip.getTitle().toLowerCase();
+        String memo = clip.getMemo() == null ? "" : clip.getMemo().toLowerCase();
+
+        return title.contains(normalizedKeyword) || memo.contains(normalizedKeyword);
+    }
+
+    private boolean matchesStatusCode(
+            Clip clip,
+            String statusCode
+    ) {
+        if (statusCode == null || statusCode.isBlank()) {
+            return true;
+        }
+
+        return statusCode.equals(clip.getStatusCode());
+    }
+
+    private boolean matchesSourceCode(
+            Clip clip,
+            String sourceCode
+    ) {
+        if (sourceCode == null || sourceCode.isBlank()) {
+            return true;
+        }
+
+        return sourceCode.equals(clip.getSourceCode());
     }
 }
