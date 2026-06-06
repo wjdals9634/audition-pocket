@@ -7,6 +7,9 @@ spring:
     database: ${MONGODB_DATABASE:audition_pocket}
 
 app:
+  admin:
+    email: ${ADMIN_EMAIL:admin@auditionpocket.com}
+    password: ${ADMIN_PASSWORD:}
   cookie:
     secure: ${COOKIE_SECURE:false}
     same-site: ${COOKIE_SAME_SITE:Lax}
