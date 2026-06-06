@@ -1,6 +1,7 @@
 package com.auditionpocket.server.clip;
 
 import com.auditionpocket.server.clip.dto.AdminClipCreateRequest;
+import com.auditionpocket.server.clip.dto.AdminClipResponse;
 import com.auditionpocket.server.clip.dto.ClipCreateRequest;
 import com.auditionpocket.server.clip.dto.ClipResponse;
 import com.auditionpocket.server.clip.dto.ClipSearchCondition;
@@ -8,6 +9,7 @@ import com.auditionpocket.server.clip.dto.ClipSortType;
 import com.auditionpocket.server.clip.dto.ClipUpdateRequest;
 import com.auditionpocket.server.common.code.CommonCodeRepository;
 import com.auditionpocket.server.tag.TagRepository;
+import com.auditionpocket.server.user.User;
 import com.auditionpocket.server.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -116,20 +118,26 @@ public class ClipService {
         softDelete(clip);
     }
 
-    public List<ClipResponse> getClipsForAdmin() {
+    public List<AdminClipResponse> getClipsForAdmin() {
         return clipRepository
                 .findByDeletedAtIsNullOrderByCreatedAtDesc()
                 .stream()
-                .map(ClipResponse::from)
+                .map(clip -> AdminClipResponse.from(
+                        clip,
+                        findUserForAdminResponse(clip.getUserId())
+                ))
                 .toList();
     }
 
-    public ClipResponse getClipForAdmin(String id) {
+    public AdminClipResponse getClipForAdmin(String id) {
         Clip clip = clipRepository.findById(id)
                 .filter(item -> item.getDeletedAt() == null)
                 .orElseThrow(() -> new IllegalArgumentException("공고 스크랩을 찾을 수 없습니다."));
 
-        return ClipResponse.from(clip);
+        return AdminClipResponse.from(
+                clip,
+                findUserForAdminResponse(clip.getUserId())
+        );
     }
 
     public ClipResponse createClipForAdmin(AdminClipCreateRequest request) {
@@ -160,7 +168,7 @@ public class ClipService {
         return ClipResponse.from(saved);
     }
 
-    public ClipResponse updateClipForAdmin(String id, ClipUpdateRequest request) {
+    public AdminClipResponse updateClipForAdmin(String id, ClipUpdateRequest request) {
         Clip clip = clipRepository.findById(id)
                 .filter(item -> item.getDeletedAt() == null)
                 .orElseThrow(() -> new IllegalArgumentException("공고 스크랩을 찾을 수 없습니다."));
@@ -169,7 +177,10 @@ public class ClipService {
 
         Clip saved = clipRepository.save(clip);
 
-        return ClipResponse.from(saved);
+        return AdminClipResponse.from(
+                saved,
+                findUserForAdminResponse(saved.getUserId())
+        );
     }
 
     public void deleteClipForAdmin(String id) {
@@ -180,7 +191,7 @@ public class ClipService {
         softDelete(clip);
     }
 
-    public ClipResponse hideClipForAdmin(String id) {
+    public AdminClipResponse hideClipForAdmin(String id) {
         Clip clip = clipRepository.findById(id)
                 .filter(item -> item.getDeletedAt() == null)
                 .orElseThrow(() -> new IllegalArgumentException("공고 스크랩을 찾을 수 없습니다."));
@@ -190,10 +201,13 @@ public class ClipService {
 
         Clip saved = clipRepository.save(clip);
 
-        return ClipResponse.from(saved);
+        return AdminClipResponse.from(
+                saved,
+                findUserForAdminResponse(saved.getUserId())
+        );
     }
 
-    public ClipResponse unhideClipForAdmin(String id) {
+    public AdminClipResponse unhideClipForAdmin(String id) {
         Clip clip = clipRepository.findById(id)
                 .filter(item -> item.getDeletedAt() == null)
                 .orElseThrow(() -> new IllegalArgumentException("공고 스크랩을 찾을 수 없습니다."));
@@ -203,7 +217,10 @@ public class ClipService {
 
         Clip saved = clipRepository.save(clip);
 
-        return ClipResponse.from(saved);
+        return AdminClipResponse.from(
+                saved,
+                findUserForAdminResponse(saved.getUserId())
+        );
     }
 
     private void updateFields(
@@ -256,6 +273,15 @@ public class ClipService {
         clip.setUpdatedAt(now);
 
         clipRepository.save(clip);
+    }
+
+    private User findUserForAdminResponse(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return null;
+        }
+
+        return userRepository.findById(userId)
+                .orElse(null);
     }
 
     private void validateUserExists(String userId) {

@@ -1,6 +1,7 @@
 package com.auditionpocket.server.clip;
 
 import com.auditionpocket.server.clip.dto.AdminClipCreateRequest;
+import com.auditionpocket.server.clip.dto.AdminClipResponse;
 import com.auditionpocket.server.clip.dto.ClipResponse;
 import com.auditionpocket.server.clip.dto.ClipUpdateRequest;
 import jakarta.validation.Valid;
@@ -17,12 +18,12 @@ public class AdminClipController {
     private final ClipService clipService;
 
     @GetMapping
-    public List<ClipResponse> getClips() {
+    public List<AdminClipResponse> getClips() {
         return clipService.getClipsForAdmin();
     }
 
     @GetMapping("/{id}")
-    public ClipResponse getClip(
+    public AdminClipResponse getClip(
             @PathVariable String id
     ) {
         return clipService.getClipForAdmin(id);
@@ -36,7 +37,7 @@ public class AdminClipController {
     }
 
     @PatchMapping("/{id}")
-    public ClipResponse updateClip(
+    public AdminClipResponse updateClip(
             @PathVariable String id,
             @RequestBody ClipUpdateRequest request
     ) {
@@ -51,14 +52,14 @@ public class AdminClipController {
     }
 
     @PatchMapping("/{id}/hide")
-    public ClipResponse hideClip(
+    public AdminClipResponse hideClip(
             @PathVariable String id
     ) {
         return clipService.hideClipForAdmin(id);
     }
 
     @PatchMapping("/{id}/unhide")
-    public ClipResponse unhideClip(
+    public AdminClipResponse unhideClip(
             @PathVariable String id
     ) {
         return clipService.unhideClipForAdmin(id);

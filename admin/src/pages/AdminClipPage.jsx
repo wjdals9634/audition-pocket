@@ -41,6 +41,10 @@ function AdminClipPage() {
       const searchText = [
         clip.id,
         clip.userId,
+        clip.userEmail,
+        clip.userName,
+        clip.userAccountType,
+        clip.userRole,
         clip.title,
         clip.sourceCode,
         clip.statusCode,
@@ -223,6 +227,42 @@ function AdminClipPage() {
     return tag.name
   }
 
+  function getAuthorTitle(clip) {
+    if (clip.userEmail) {
+      return clip.userEmail
+    }
+
+    if (clip.userAccountType === 'GUEST') {
+      return '게스트 계정'
+    }
+
+    if (clip.userAccountType === 'UNKNOWN') {
+      return '알 수 없는 사용자'
+    }
+
+    return '사용자 정보 없음'
+  }
+
+  function getAuthorName(clip) {
+    if (clip.userName) {
+      return clip.userName
+    }
+
+    return '-'
+  }
+
+  function getAuthorAccountType(clip) {
+    if (clip.userAccountType) {
+      return clip.userAccountType
+    }
+
+    if (!clip.userEmail) {
+      return 'GUEST'
+    }
+
+    return '-'
+  }
+
   function formatDateTime(value) {
     if (!value) {
       return '-'
@@ -313,7 +353,7 @@ function AdminClipPage() {
           <input
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
-            placeholder="제목, 사용자 ID, 메모 검색"
+            placeholder="제목, 사용자 ID, 이메일, 이름, 메모 검색"
             className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
           />
 
@@ -395,9 +435,35 @@ function AdminClipPage() {
                     공고 ID: {clip.id}
                   </p>
 
-                  <p className="mt-1 break-all text-xs text-slate-500">
-                    작성자 ID: {clip.userId}
-                  </p>
+                  <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
+                    <p className="break-all">
+                      작성자:{' '}
+                      <span className="font-semibold text-slate-900">
+                        {getAuthorTitle(clip)}
+                      </span>
+                    </p>
+
+                    <p className="mt-1">
+                      이름:{' '}
+                      <span className="font-semibold text-slate-900">
+                        {getAuthorName(clip)}
+                      </span>
+                      {' · '}
+                      계정 타입:{' '}
+                      <span className="font-semibold text-slate-900">
+                        {getAuthorAccountType(clip)}
+                      </span>
+                      {' · '}
+                      권한:{' '}
+                      <span className="font-semibold text-slate-900">
+                        {clip.userRole || '-'}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 break-all">
+                      사용자 ID: {clip.userId || '-'}
+                    </p>
+                  </div>
 
                   {clip.sourceUrl && (
                     <a
