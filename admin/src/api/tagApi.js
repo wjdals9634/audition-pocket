@@ -17,3 +17,7 @@ export async function updateAdminTag(id, payload) {
 
   return response.data
 }
+
+export async function deleteAdminTag(id) {
+  await apiClient.delete(`/admin/tags/${id}`)
+}

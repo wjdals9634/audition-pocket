@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   createAdminTag,
+  deleteAdminTag,
   getAdminTags,
   updateAdminTag,
 } from '../api/tagApi'
@@ -23,6 +24,7 @@ function AdminTagPage() {
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
@@ -179,6 +181,38 @@ function AdminTagPage() {
     }
   }
 
+  async function handleDelete(tag) {
+    const confirmed = window.confirm(
+      `${tag.name} 태그를 삭제할까요?\n\n삭제하면 사용자 화면에서 더 이상 사용되지 않습니다.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      setDeletingId(tag.id)
+      setErrorMessage('')
+
+      await deleteAdminTag(tag.id)
+
+      if (editingTagId === tag.id) {
+        cancelEdit()
+      }
+
+      await fetchTags()
+    } catch (error) {
+      console.error(error)
+
+      const message =
+        error.response?.data?.message || '태그를 삭제하는 중 문제가 발생했습니다.'
+
+      setErrorMessage(message)
+    } finally {
+      setDeletingId('')
+    }
+  }
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -208,7 +242,7 @@ function AdminTagPage() {
 
         <p className="mt-3 text-sm leading-6 text-slate-600">
           사용자 앱에서 공고를 분류할 때 사용하는 태그를 관리합니다.
-          비활성화된 태그는 사용자 화면에서 숨기는 방식으로 확장할 수 있습니다.
+          삭제된 태그는 사용자 화면에서 더 이상 사용되지 않습니다.
         </p>
 
         <ErrorMessage message={errorMessage} className="mt-5" />
@@ -291,6 +325,7 @@ function AdminTagPage() {
                         <input
                           value={editingName}
                           onChange={(event) => setEditingName(event.target.value)}
+                          placeholder="태그명"
                           className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
                         />
 
@@ -301,6 +336,7 @@ function AdminTagPage() {
                           onChange={(event) =>
                             setEditingDisplayOrder(event.target.value)
                           }
+                          placeholder="노출 순서"
                           className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
                         />
 
@@ -316,7 +352,7 @@ function AdminTagPage() {
                         </select>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           type="submit"
                           disabled={submitting}
@@ -331,6 +367,15 @@ function AdminTagPage() {
                           className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
                         >
                           취소
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(tag)}
+                          disabled={deletingId === tag.id}
+                          className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 disabled:opacity-50"
+                        >
+                          {deletingId === tag.id ? '삭제 중...' : '삭제'}
                         </button>
                       </div>
                     </form>
@@ -347,13 +392,24 @@ function AdminTagPage() {
                         </p>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => startEdit(tag)}
-                        className="shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
-                      >
-                        수정
-                      </button>
+                      <div className="flex shrink-0 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startEdit(tag)}
+                          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                        >
+                          수정
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(tag)}
+                          disabled={deletingId === tag.id}
+                          className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 disabled:opacity-50"
+                        >
+                          {deletingId === tag.id ? '삭제 중...' : '삭제'}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
