@@ -1,11 +1,16 @@
 package com.auditionpocket.server.tag.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public record TagCreateRequest(
-        @NotBlank String name,
-        @NotNull Integer displayOrder,
-        @NotNull Boolean active
+
+        @NotBlank
+        String name,
+
+        @Min(1)
+        Integer displayOrder,
+
+        Boolean active
 ) {
 }

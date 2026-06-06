@@ -1,21 +1,80 @@
+import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { getMe } from './api/authApi'
+import AdminDashboardPage from './pages/AdminDashboardPage'
+import AdminLoginPage from './pages/AdminLoginPage'
+import AdminTagPage from './pages/AdminTagPage'
+
 function App() {
+  const [currentUser, setCurrentUser] = useState(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const user = await getMe()
+
+        if (user.role === 'ADMIN') {
+          setCurrentUser(user)
+        } else {
+          setCurrentUser(null)
+        }
+      } catch {
+        setCurrentUser(null)
+      } finally {
+        setCheckingAuth(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
+  if (checkingAuth) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50">
+        <p className="text-sm text-slate-500">관리자 권한 확인 중...</p>
+      </main>
+    )
+  }
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <section className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-sm">
-        <p className="mb-2 text-sm font-medium text-violet-600">
-          Audition Pocket Admin
-        </p>
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          currentUser ? (
+            <Navigate to="/" replace />
+          ) : (
+            <AdminLoginPage onLogin={setCurrentUser} />
+          )
+        }
+      />
 
-        <h1 className="text-2xl font-bold text-slate-900">
-          관리자 페이지 준비 중
-        </h1>
+      <Route
+        path="/"
+        element={
+          currentUser ? (
+            <AdminDashboardPage
+              currentUser={currentUser}
+              onLogout={() => setCurrentUser(null)}
+            />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          관리자 로그인, 태그 관리, 공통 코드 관리, 사용자 관리 화면을
-          순서대로 만들 예정입니다.
-        </p>
-      </section>
-    </main>
+      <Route
+        path="/tags"
+        element={
+          currentUser ? (
+            <AdminTagPage />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+    </Routes>
   )
 }
 
