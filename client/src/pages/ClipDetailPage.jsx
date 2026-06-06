@@ -71,7 +71,7 @@ function ClipDetailPage() {
     const status = statusCodes.find((item) => item.code === code)
 
     if (!status) {
-      return code
+      return code || '-'
     }
 
     return status.label
@@ -81,7 +81,7 @@ function ClipDetailPage() {
     const source = sourceCodes.find((item) => item.code === code)
 
     if (!source) {
-      return code
+      return code || '-'
     }
 
     return source.label
@@ -97,8 +97,26 @@ function ClipDetailPage() {
     return tag.name
   }
 
+  function getDaysLeftText(daysLeft) {
+    if (daysLeft === null || daysLeft === undefined) {
+      return '-'
+    }
+
+    if (daysLeft < 0) {
+      return `마감 ${Math.abs(daysLeft)}일 지남`
+    }
+
+    if (daysLeft === 0) {
+      return '오늘 마감'
+    }
+
+    return `D-${daysLeft}`
+  }
+
   async function handleDelete() {
-    const confirmed = window.confirm('정말 이 공고를 삭제할까요?')
+    const confirmed = window.confirm(
+      '정말 이 공고를 삭제할까요?\n\n삭제하면 목록에서 더 이상 보이지 않습니다.'
+    )
 
     if (!confirmed) {
       return
@@ -137,35 +155,42 @@ function ClipDetailPage() {
 
       {clip && (
         <Card>
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
               <p className="mb-2 text-sm font-medium text-violet-600">
                 Audition Pocket
               </p>
 
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="break-words text-2xl font-bold text-slate-900">
                 {clip.title}
               </h1>
 
-              <p className="mt-3 text-sm text-slate-500">
+              <p className="mt-3 text-sm leading-6 text-slate-500">
                 출처: {getSourceLabel(clip.sourceCode)} · 상태:{' '}
                 {getStatusLabel(clip.statusCode)}
               </p>
             </div>
 
-            <div className="shrink-0 rounded-2xl bg-slate-50 px-4 py-3 text-right">
+            <div className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-left md:w-auto md:shrink-0 md:text-right">
               <p className="text-xs text-slate-500">마감</p>
               <p className="text-lg font-bold text-slate-900">
-                D-{clip.daysLeft}
+                {getDaysLeftText(clip.daysLeft)}
               </p>
             </div>
           </div>
 
-          {currentUser && (
+          {currentUser?.accountType === 'GUEST' && (
+            <div className="mt-5 rounded-2xl bg-violet-50 p-4 text-sm leading-6 text-violet-700">
+              현재 게스트 상태입니다. 이 공고를 계속 보관하려면 이메일 연동을
+              해두는 것이 안전합니다.
+            </div>
+          )}
+
+          {currentUser?.accountType === 'REGISTERED' && (
             <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-              현재 상태:{' '}
+              로그인 계정:{' '}
               <span className="font-semibold text-slate-900">
-                {currentUser.accountType}
+                {currentUser.email}
               </span>
             </div>
           )}
@@ -176,14 +201,18 @@ function ClipDetailPage() {
                 공고 링크
               </p>
 
-              <a
-                href={clip.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="break-all text-sm font-medium text-violet-600 underline"
-              >
-                {clip.sourceUrl}
-              </a>
+              {clip.sourceUrl ? (
+                <a
+                  href={clip.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-sm font-medium text-violet-600 underline"
+                >
+                  {clip.sourceUrl}
+                </a>
+              ) : (
+                <p className="text-sm text-slate-500">저장된 링크가 없어요.</p>
+              )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -204,7 +233,7 @@ function ClipDetailPage() {
               <div className="rounded-2xl border border-slate-200 p-4">
                 <p className="text-xs text-slate-500">마감일</p>
                 <p className="mt-1 text-sm font-semibold text-slate-900">
-                  {clip.deadlineDate}
+                  {clip.deadlineDate || '-'}
                 </p>
               </div>
             </div>
@@ -214,11 +243,11 @@ function ClipDetailPage() {
                 태그
               </p>
 
-              {clip.tagIds.length === 0 ? (
+              {clip.tagIds?.length === 0 ? (
                 <p className="text-sm text-slate-500">선택된 태그가 없어요.</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {clip.tagIds.map((tagId) => (
+                  {clip.tagIds?.map((tagId) => (
                     <span
                       key={tagId}
                       className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700"
@@ -235,17 +264,17 @@ function ClipDetailPage() {
                 메모
               </p>
 
-              <div className="min-h-24 rounded-2xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
+              <div className="min-h-24 whitespace-pre-wrap rounded-2xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
                 {clip.memo || '작성된 메모가 없어요.'}
               </div>
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={() => navigate(`/clips/${clip.id}/edit`)}
-              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white"
+              className="w-full rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white sm:w-auto"
             >
               수정하기
             </button>
@@ -254,7 +283,7 @@ function ClipDetailPage() {
               type="button"
               onClick={handleDelete}
               disabled={deleting}
-              className="rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 disabled:opacity-50"
+              className="w-full rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 disabled:opacity-50 sm:w-auto"
             >
               {deleting ? '삭제 중...' : '삭제하기'}
             </button>

@@ -67,7 +67,7 @@ function ClipListPage() {
     const status = statusCodes.find((item) => item.code === code)
 
     if (!status) {
-      return code
+      return code || '-'
     }
 
     return status.label
@@ -77,10 +77,35 @@ function ClipListPage() {
     const source = sourceCodes.find((item) => item.code === code)
 
     if (!source) {
-      return code
+      return code || '-'
     }
 
     return source.label
+  }
+
+  function getDaysLeftText(daysLeft) {
+    if (daysLeft === null || daysLeft === undefined) {
+      return '-'
+    }
+
+    if (daysLeft < 0) {
+      return `마감 ${Math.abs(daysLeft)}일 지남`
+    }
+
+    if (daysLeft === 0) {
+      return '오늘 마감'
+    }
+
+    return `D-${daysLeft}`
+  }
+
+  function hasActiveFilters() {
+    return Boolean(
+      keyword.trim() ||
+        statusCode ||
+        sourceCode ||
+        sort !== 'RECENT'
+    )
   }
 
   async function fetchClipsWithFilters(nextValues = {}) {
@@ -213,8 +238,8 @@ function ClipListPage() {
 
   return (
     <PageShell maxWidth="max-w-5xl">
-      <Card className="mb-8">
-        <div className="flex items-start justify-between gap-4">
+      <Card className="mb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="mb-2 text-sm font-medium text-violet-600">
               Audition Pocket
@@ -225,8 +250,8 @@ function ClipListPage() {
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              로그인 없이 바로 공고를 저장할 수 있어요. 이메일을 연동하면
-              다른 기기에서도 안전하게 이어서 사용할 수 있습니다.
+              OTR, 필름메이커스, 인스타그램, 유튜브, 카카오톡 단톡방에서 본
+              공고를 저장하고 마감일과 지원 상태를 관리할 수 있어요.
             </p>
           </div>
 
@@ -235,32 +260,34 @@ function ClipListPage() {
               type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+              className="w-full shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50 md:w-auto"
             >
               {loggingOut ? '로그아웃 중...' : '로그아웃'}
             </button>
           )}
         </div>
 
-        {currentUser && (
-          <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-            현재 상태:{' '}
+        {currentUser?.accountType === 'GUEST' && (
+          <div className="mt-5 rounded-2xl bg-violet-50 p-4 text-sm leading-6 text-violet-700">
+            로그인 없이 바로 사용할 수 있어요. 단, 게스트 데이터는 현재
+            브라우저에서만 이어지므로 이메일 연동을 해두면 더 안전합니다.
+          </div>
+        )}
+
+        {currentUser?.accountType === 'REGISTERED' && (
+          <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+            로그인 계정:{' '}
             <span className="font-semibold text-slate-900">
-              {currentUser.accountType}
-            </span>
-            {' / '}
-            권한:{' '}
-            <span className="font-semibold text-slate-900">
-              {currentUser.role}
+              {currentUser.email}
             </span>
           </div>
         )}
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <button
             type="button"
             onClick={() => navigate('/clips/new')}
-            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white"
+            className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white"
           >
             공고 추가하기
           </button>
@@ -269,7 +296,7 @@ function ClipListPage() {
             <button
               type="button"
               onClick={() => navigate('/link-email')}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700"
             >
               이메일 연동하기
             </button>
@@ -279,7 +306,7 @@ function ClipListPage() {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700"
             >
               기존 계정 로그인
             </button>
@@ -290,7 +317,7 @@ function ClipListPage() {
       <ErrorMessage message={errorMessage} className="mb-6" />
 
       <Card className="mb-6">
-        <div className="mb-5 flex items-center justify-between gap-4">
+        <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">검색과 필터</h2>
 
@@ -380,14 +407,45 @@ function ClipListPage() {
         </div>
 
         {clips.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center">
-            <p className="text-sm font-medium text-slate-700">
-              조건에 맞는 공고가 없어요.
-            </p>
+          <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center md:p-10">
+            {hasActiveFilters() ? (
+              <>
+                <p className="text-sm font-medium text-slate-700">
+                  조건에 맞는 공고가 없어요.
+                </p>
 
-            <p className="mt-2 text-sm text-slate-500">
-              검색어를 바꾸거나 필터를 초기화해보세요.
-            </p>
+                <p className="mt-2 text-sm text-slate-500">
+                  검색어를 바꾸거나 필터를 초기화해보세요.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                >
+                  필터 초기화
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-base font-semibold text-slate-900">
+                  아직 저장한 공고가 없어요.
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  OTR, 필름메이커스, 인스타그램 등에서 본 오디션 공고 링크를
+                  저장해보세요. 마감일과 지원 상태를 한곳에서 관리할 수 있어요.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/clips/new')}
+                  className="mt-5 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white"
+                >
+                  첫 공고 추가하기
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -397,8 +455,8 @@ function ClipListPage() {
                 onClick={() => navigate(`/clips/${clip.id}`)}
                 className="cursor-pointer rounded-2xl border border-slate-200 p-4 transition hover:border-violet-300 hover:bg-violet-50/30"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
                     <h3 className="font-semibold text-slate-900">
                       {clip.title}
                     </h3>
@@ -409,20 +467,20 @@ function ClipListPage() {
                     </p>
 
                     <p className="mt-1 text-sm text-slate-500">
-                      마감일: {clip.deadlineDate}
+                      마감일: {clip.deadlineDate || '-'}
                     </p>
 
                     {clip.memo && (
-                      <p className="mt-2 text-sm text-slate-600">
+                      <p className="mt-2 line-clamp-2 text-sm text-slate-600">
                         {clip.memo}
                       </p>
                     )}
                   </div>
 
-                  <div className="shrink-0 rounded-xl bg-slate-50 px-3 py-2 text-right">
+                  <div className="shrink-0 rounded-xl bg-slate-50 px-3 py-2 text-left md:text-right">
                     <p className="text-xs text-slate-500">마감</p>
                     <p className="text-sm font-semibold text-slate-900">
-                      D-{clip.daysLeft}
+                      {getDaysLeftText(clip.daysLeft)}
                     </p>
                   </div>
                 </div>

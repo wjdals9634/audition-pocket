@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { createGuest, getMe } from '../api/authApi'
 import { getClip, updateClip } from '../api/clipApi'
@@ -13,8 +13,7 @@ import PageShell from '../components/PageShell'
 function ClipEditPage() {
   const navigate = useNavigate()
   const { id } = useParams()
-
-  const today = new Date().toISOString().slice(0, 10)
+  const errorRef = useRef(null)
 
   const [sourceCodes, setSourceCodes] = useState([])
   const [statusCodes, setStatusCodes] = useState([])
@@ -70,7 +69,7 @@ function ClipEditPage() {
           error.response?.data?.message ||
           '공고 수정 화면을 불러오는 중 문제가 발생했습니다.'
 
-        setErrorMessage(message)
+        showError(message)
       } finally {
         setLoading(false)
       }
@@ -78,6 +77,17 @@ function ClipEditPage() {
 
     initializePage()
   }, [id])
+
+  function showError(message) {
+    setErrorMessage(message)
+
+    window.setTimeout(() => {
+      errorRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }, 0)
+  }
 
   function toggleTag(tagId) {
     setSelectedTagIds((prevTagIds) => {
@@ -89,31 +99,50 @@ function ClipEditPage() {
     })
   }
 
+  function isValidUrl(value) {
+    try {
+      const url = new URL(value)
+
+      return url.protocol === 'http:' || url.protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (!title.trim()) {
-      setErrorMessage('공고 제목을 입력해주세요.')
+    const trimmedTitle = title.trim()
+    const trimmedSourceUrl = sourceUrl.trim()
+    const trimmedMemo = memo.trim()
+
+    if (!trimmedTitle) {
+      showError('공고 제목을 입력해주세요.')
       return
     }
 
     if (!sourceCode) {
-      setErrorMessage('공고 출처를 선택해주세요.')
+      showError('공고 출처를 선택해주세요.')
       return
     }
 
-    if (!sourceUrl.trim()) {
-      setErrorMessage('공고 링크를 입력해주세요.')
+    if (!trimmedSourceUrl) {
+      showError('공고 링크를 입력해주세요.')
+      return
+    }
+
+    if (!isValidUrl(trimmedSourceUrl)) {
+      showError('공고 링크는 http:// 또는 https://로 시작하는 주소여야 합니다.')
       return
     }
 
     if (!deadlineDate) {
-      setErrorMessage('마감일을 선택해주세요.')
+      showError('마감일을 선택해주세요.')
       return
     }
 
     if (!statusCode) {
-      setErrorMessage('지원 상태를 선택해주세요.')
+      showError('지원 상태를 선택해주세요.')
       return
     }
 
@@ -122,13 +151,13 @@ function ClipEditPage() {
       setErrorMessage('')
 
       await updateClip(id, {
-        title: title.trim(),
+        title: trimmedTitle,
         sourceCode,
-        sourceUrl: sourceUrl.trim(),
+        sourceUrl: trimmedSourceUrl,
         deadlineDate,
         statusCode,
         tagIds: selectedTagIds,
-        memo: memo.trim(),
+        memo: trimmedMemo,
       })
 
       navigate(`/clips/${id}`)
@@ -138,7 +167,7 @@ function ClipEditPage() {
       const message =
         error.response?.data?.message || '공고를 수정하는 중 문제가 발생했습니다.'
 
-      setErrorMessage(message)
+      showError(message)
     } finally {
       setSubmitting(false)
     }
@@ -170,7 +199,9 @@ function ClipEditPage() {
           수정할 수 있어요.
         </p>
 
-        <ErrorMessage message={errorMessage} className="mt-5" />
+        <div ref={errorRef}>
+          <ErrorMessage message={errorMessage} className="mt-5" />
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
@@ -182,7 +213,7 @@ function ClipEditPage() {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="예: 뮤지컬 주연 오디션"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-violet-500 md:text-sm"
             />
 
             <p className="mt-2 text-xs text-slate-500">
@@ -204,7 +235,7 @@ function ClipEditPage() {
               value={sourceUrl}
               onChange={(event) => setSourceUrl(event.target.value)}
               placeholder="https://..."
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-violet-500 md:text-sm"
             />
 
             <p className="mt-2 text-xs text-slate-500">
@@ -222,7 +253,7 @@ function ClipEditPage() {
               <select
                 value={sourceCode}
                 onChange={(event) => setSourceCode(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:border-violet-500 md:text-sm"
               >
                 {sourceCodes.map((item) => (
                   <option key={item.id} value={item.code}>
@@ -239,15 +270,13 @@ function ClipEditPage() {
 
               <input
                 type="date"
-                min={today}
                 value={deadlineDate}
                 onChange={(event) => setDeadlineDate(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-violet-500 md:text-sm"
               />
 
               <p className="mt-2 text-xs text-slate-500">
-                지난 마감 공고는 새 마감일로 수정할 때 오늘 이후 날짜를
-                선택해주세요.
+                지난 공고도 기록용으로 유지할 수 있어요.
               </p>
             </div>
 
@@ -259,7 +288,7 @@ function ClipEditPage() {
               <select
                 value={statusCode}
                 onChange={(event) => setStatusCode(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:border-violet-500 md:text-sm"
               >
                 {statusCodes.map((item) => (
                   <option key={item.id} value={item.code}>
@@ -275,26 +304,32 @@ function ClipEditPage() {
               태그
             </label>
 
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => {
-                const selected = selectedTagIds.includes(tag.id)
+            {tags.length === 0 ? (
+              <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">
+                선택 가능한 태그가 없습니다.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => {
+                  const selected = selectedTagIds.includes(tag.id)
 
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => toggleTag(tag.id)}
-                    className={
-                      selected
-                        ? 'rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white'
-                        : 'rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600'
-                    }
-                  >
-                    {tag.name}
-                  </button>
-                )
-              })}
-            </div>
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.id)}
+                      className={
+                        selected
+                          ? 'rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white'
+                          : 'rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600'
+                      }
+                    >
+                      {tag.name}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
 
             <p className="mt-2 text-xs text-slate-500">
               공고 성격이 바뀌었거나 분류가 필요하면 태그를 다시 선택하세요.
@@ -311,7 +346,7 @@ function ClipEditPage() {
               onChange={(event) => setMemo(event.target.value)}
               placeholder="준비물, 지정곡, 지원 조건, 제출 서류 등을 적어두세요."
               rows={5}
-              className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+              className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-violet-500 md:text-sm"
             />
 
             <p className="mt-2 text-xs text-slate-500">
@@ -319,21 +354,21 @@ function ClipEditPage() {
             </p>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {submitting ? '저장 중...' : '수정 저장하기'}
-            </button>
-
+          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
             <button
               type="button"
               onClick={() => navigate(`/clips/${id}`)}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+              className="w-full rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:w-auto"
             >
               취소
+            </button>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto"
+            >
+              {submitting ? '저장 중...' : '수정 저장하기'}
             </button>
           </div>
         </form>
