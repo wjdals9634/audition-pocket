@@ -4,6 +4,7 @@ import { getMe } from './api/authApi'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminTagPage from './pages/AdminTagPage'
+import AdminCommonCodePage from './pages/AdminCommonCodePage'
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null)
@@ -69,6 +70,17 @@ function App() {
         element={
           currentUser ? (
             <AdminTagPage />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/common-codes"
+        element={
+          currentUser ? (
+            <AdminCommonCodePage />
           ) : (
             <Navigate to="/login" replace />
           )
