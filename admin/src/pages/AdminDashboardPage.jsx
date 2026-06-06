@@ -99,9 +99,10 @@ function AdminDashboardPage({
 
           <button
             type="button"
+            onClick={() => navigate('/users')}
             className="mt-5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
           >
-            준비 중
+            관리하기
           </button>
         </Card>
 
@@ -114,9 +115,10 @@ function AdminDashboardPage({
 
           <button
             type="button"
+            onClick={() => navigate('/clips')}
             className="mt-5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
           >
-            준비 중
+            관리하기
           </button>
         </Card>
       </div>

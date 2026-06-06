@@ -9,10 +9,12 @@ public record UserResponse(
         String email,
         String name,
         String statusCode,
+        String accountType,
         String role,
         Instant createdAt,
         Instant updatedAt,
-        Instant lastLoginAt
+        Instant lastLoginAt,
+        Instant deletedAt
 ) {
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -20,10 +22,12 @@ public record UserResponse(
                 user.getEmail(),
                 user.getName(),
                 user.getStatusCode(),
+                user.getAccountType(),
                 user.getRole(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                user.getLastLoginAt()
+                user.getLastLoginAt(),
+                user.getDeletedAt()
         );
     }
 }

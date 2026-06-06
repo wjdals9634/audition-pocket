@@ -4,6 +4,7 @@ import com.auditionpocket.server.user.dto.UserCreateRequest;
 import com.auditionpocket.server.user.dto.UserResponse;
 import com.auditionpocket.server.user.dto.UserUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,7 +14,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final String USER_STATUS_ACTIVE = "ACTIVE";
+    private static final String USER_STATUS_DELETED = "DELETED";
+    private static final String ACCOUNT_TYPE_REGISTERED = "REGISTERED";
+    private static final String ROLE_USER = "USER";
+
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserResponse> getUsersForAdmin() {
         return userRepository
@@ -42,10 +49,11 @@ public class UserService {
 
         User user = User.builder()
                 .email(request.email())
-                .passwordHash("{noop}" + request.password())
+                .passwordHash(passwordEncoder.encode(request.password()))
                 .name(request.name())
-                .statusCode("ACTIVE")
-                .role("USER")
+                .statusCode(USER_STATUS_ACTIVE)
+                .accountType(ACCOUNT_TYPE_REGISTERED)
+                .role(ROLE_USER)
                 .createdAt(now)
                 .updatedAt(now)
                 .lastLoginAt(null)
@@ -84,7 +92,7 @@ public class UserService {
 
         Instant now = Instant.now();
 
-        user.setStatusCode("DELETED");
+        user.setStatusCode(USER_STATUS_DELETED);
         user.setDeletedAt(now);
         user.setUpdatedAt(now);
 

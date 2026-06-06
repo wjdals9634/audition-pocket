@@ -5,6 +5,8 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminTagPage from './pages/AdminTagPage'
 import AdminCommonCodePage from './pages/AdminCommonCodePage'
+import AdminUserPage from './pages/AdminUserPage'
+import AdminClipPage from './pages/AdminClipPage'
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null)
@@ -81,6 +83,28 @@ function App() {
         element={
           currentUser ? (
             <AdminCommonCodePage />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          currentUser ? (
+            <AdminUserPage />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/clips"
+        element={
+          currentUser ? (
+            <AdminClipPage />
           ) : (
             <Navigate to="/login" replace />
           )
