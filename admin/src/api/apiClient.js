@@ -22,8 +22,8 @@ apiClient.interceptors.response.use(
     if (status === 401 || status === 403) {
       const currentPath = window.location.pathname
 
-      if (currentPath !== '/login') {
-        window.location.href = '/login'
+      if (currentPath !== '/admin/login') {
+        window.location.href = '/admin/login'
       }
     }
 
