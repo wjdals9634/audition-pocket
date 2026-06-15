@@ -193,7 +193,7 @@ function ClipListPage() {
                 type="button"
                 onClick={() => setShowHelp((value) => !value)}
                 aria-label="도움말"
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] font-bold text-slate-700 shadow-sm"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-sm"
               >
                 ?
               </button>
@@ -202,9 +202,9 @@ function ClipListPage() {
                 type="button"
                 onClick={() => setShowAccountMenu((value) => !value)}
                 aria-label="계정"
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm"
               >
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21a8 8 0 0 0-16 0" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
@@ -272,16 +272,16 @@ function ClipListPage() {
                   value={keyword}
                   onChange={handleKeywordChange}
                   placeholder="공고명, 메모, 키워드 검색"
-                  className="h-9 w-full rounded-2xl border-0 bg-slate-100 pl-8.5 pr-3 text-[13px] font-semibold text-slate-900 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-violet-500 md:h-10 md:text-sm"
+                  className="h-10 w-full rounded-2xl border-0 bg-slate-100 pl-9 pr-3 text-base font-semibold text-slate-900 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-violet-500 md:h-10 md:text-sm"
                 />
               </label>
 
               <button
                 type="button"
                 onClick={() => navigate('/clips/new')}
-                className="flex h-9 min-w-20 shrink-0 items-center justify-center gap-1 rounded-2xl bg-slate-800 px-3 text-[13px] font-bold text-white shadow-sm md:h-10 md:text-sm"
+                className="flex h-10 min-w-21 shrink-0 items-center justify-center gap-1 rounded-2xl bg-slate-800 px-3.5 text-sm font-bold text-white shadow-sm md:h-10"
               >
-                <span className="text-sm leading-none">+</span>
+                <span className="text-base leading-none">+</span>
                 <span>추가</span>
               </button>
             </div>
@@ -290,7 +290,7 @@ function ClipListPage() {
               <select
                 value={statusCode}
                 onChange={handleStatusChange}
-                className="h-8.5 min-w-20 rounded-xl border border-slate-200 bg-white px-2.5 text-[12px] font-semibold text-slate-900 outline-none focus:border-violet-500 md:h-9 md:min-w-24 md:text-xs"
+                className="h-9 min-w-22 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 md:h-9 md:min-w-24"
               >
                 <option value="">상태</option>
                 {statusCodes.map((item) => (
@@ -303,7 +303,7 @@ function ClipListPage() {
               <select
                 value={sourceCode}
                 onChange={handleSourceChange}
-                className="h-8.5 min-w-20 rounded-xl border border-slate-200 bg-white px-2.5 text-[12px] font-semibold text-slate-900 outline-none focus:border-violet-500 md:h-9 md:min-w-24 md:text-xs"
+                className="h-9 min-w-22 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 md:h-9 md:min-w-24"
               >
                 <option value="">출처</option>
                 {sourceCodes.map((item) => (
@@ -316,7 +316,7 @@ function ClipListPage() {
               <select
                 value={sort}
                 onChange={handleSortChange}
-                className="h-8.5 min-w-20 rounded-xl border border-slate-200 bg-white px-2.5 text-[12px] font-semibold text-slate-900 outline-none focus:border-violet-500 md:h-9 md:min-w-24 md:text-xs"
+                className="h-9 min-w-22 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 md:h-9 md:min-w-24"
               >
                 <option value="RECENT">최근</option>
                 <option value="DEADLINE_ASC">마감임박</option>
@@ -325,7 +325,7 @@ function ClipListPage() {
               <button
                 type="submit"
                 disabled={filtering}
-                className="h-8.5 min-w-14 rounded-xl bg-slate-900 px-2.5 text-[12px] font-bold text-white disabled:opacity-50 md:h-9 md:text-xs"
+                className="h-9 min-w-16 rounded-xl bg-slate-900 px-3 text-xs font-bold text-white disabled:opacity-50 md:h-9"
               >
                 {filtering ? '...' : '검색'}
               </button>
@@ -335,7 +335,7 @@ function ClipListPage() {
                   type="button"
                   onClick={handleResetFilters}
                   disabled={filtering}
-                  className="h-8.5 min-w-14 rounded-xl border border-slate-200 bg-white px-2.5 text-[12px] font-bold text-slate-700 disabled:opacity-50 md:h-9 md:text-xs"
+                  className="h-9 min-w-16 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 disabled:opacity-50 md:h-9"
                 >
                   초기화
                 </button>
